@@ -77,7 +77,7 @@ int main(int n, const char*params[])
 			{
 				alphabet = params[i+1];
 			}		
-			if(param == "-chunksize" && is_integral<int>::param)
+			if(param == "-chunksize")
 			{
 				chunksize = (int)params[i+1];
 			}
