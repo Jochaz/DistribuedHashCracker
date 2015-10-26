@@ -7,6 +7,13 @@
 #include "DemoThreads.h"
 #include "DemoFiles.h"
 #include "DemoDateTime.h"
+#include <stdio.h>
+
+#include <stdlib.h>
+
+#include "string"
+using namespace std;
+#include "DemoUtil.h"
 
 
 void demos( int argc, char *argv[] ) {
@@ -23,22 +30,67 @@ void demos( int argc, char *argv[] ) {
 	std::cout << std::endl;
 	//TestThreads();
 	TestException();
+	
+	//TestThreads();
+	//TestException();
 	//TestHashes();
 	//TestSocket();
 	//TestFiles();
 	//TestDateTime();
 	//TestUtil();
+	TestUtil();
 
 	return;
 }
 
 
-int main( int argc, char *argv[] ) {
-	std::cout << "** Welcome to this demo skeleton." << std::endl;
+int main(int n, const char*params[])  
+{
+    int i;
+	string hash = "";
+	string algo = "";
+	string alphabet = "";
+	int chunksize = 0;
+	string param;
 
-	demos( argc, argv );
+	if((n-1)%2 != 0 || (n-1)/2 != 4)
+	{
+		std::cout << "EXCEPTION, le nb d'argument est incohérent ou incomplet" << std::endl;
 
-	std::cout << "** Goodbye" << std::endl;
-	system( "pause" );
-	return 0;
+	}else{
+		//OK, le nb d'argument est cohérent
+		for (i=1; i<n; i=i+2) // i+2 car i = la clé & i+1 la valeur, donc on boucle sur les clés, ce qui justifie le fait d'avoir un pas de 2 et non de 1
+		{
+			param = params[i];
+		
+			if(param == "-hash")
+			{
+				hash = params[i+1];
+			}
+		
+			if(param == "-algo")
+			{
+				algo = params[i+1];
+			}
+		
+			if(param == "-alphabet")
+			{
+				alphabet = params[i+1];
+			}		
+			if(param == "-chunksize" && is_integral<int>::param)
+			{
+				chunksize = (int)params[i+1];
+			}
+		}
+
+		if(hash != "" && algo != ""  && alphabet != ""  && chunksize != 0 )
+		{
+				std::cout << "Ok, les parametres ont tous ete saisis" << std::endl;
+		}else
+		{
+				std::cout << "EXCEPTION, certains parametres sont non saisis" << std::endl;
+
+		}
+		return 0;
+	}
 }
