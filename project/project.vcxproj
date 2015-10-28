@@ -221,6 +221,7 @@
     <ClInclude Include="..\libs\socket\include\CSocketIOException.h" />
     <ClInclude Include="..\libs\socket\include\CSocketIp4.h" />
     <ClInclude Include="..\libs\util\include\CUtil.h" />
+    <ClInclude Include="Chunk.h" />
     <ClInclude Include="DemoDateTime.h" />
     <ClInclude Include="DemoException.h" />
     <ClInclude Include="DemoFiles.h" />
@@ -233,6 +234,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="DemoDateTime.cpp" />
     <ClCompile Include="DemoException.cpp" />
     <ClCompile Include="DemoFiles.cpp" />
