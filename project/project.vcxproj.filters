@@ -45,11 +45,11 @@
     <Filter Include="Header Files\Libraries\util">
       <UniqueIdentifier>{95dd2574-c917-45b9-bcbd-1c6bf893f28b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Projet">
-      <UniqueIdentifier>{26468733-b721-4d63-b63f-1952a73fd2ca}</UniqueIdentifier>
+    <Filter Include="Header Files\Project">
+      <UniqueIdentifier>{16adba8b-0033-4cb5-83e3-d538c5ba68bf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Projet">
-      <UniqueIdentifier>{548e7370-cd48-45ac-a478-ae56ceabbf93}</UniqueIdentifier>
+    <Filter Include="Source Files\Project">
+      <UniqueIdentifier>{342e5f3a-08e0-4cf1-bac2-a164e6dff85b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -164,8 +164,8 @@
     <ClInclude Include="DemoUtil.h">
       <Filter>Header Files\Demos</Filter>
     </ClInclude>
-    <ClInclude Include="NextPassword.h">
-      <Filter>Header Files\Projet</Filter>
+    <ClInclude Include="Log.h">
+      <Filter>Header Files\Project</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -196,8 +196,8 @@
     <ClCompile Include="DemoUtil.cpp">
       <Filter>Source Files\Demos</Filter>
     </ClCompile>
-    <ClCompile Include="NextPassword.cpp">
-      <Filter>Source Files\Projet</Filter>
+    <ClCompile Include="Log.cpp">
+      <Filter>Source Files\Project</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
