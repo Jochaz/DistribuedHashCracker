@@ -1,10 +1,22 @@
+#pragma once
+
+#include <iostream>
 #include <string>
-class Chunk{
-public:
-	Chunk(std::string unePlageDebut, std::string unePlageFin);
-	std::string GetPlageDebut();
-	std::string GetPlageFin();
+
+class CPasswordChunk {
 private:
-	std::string FPlageDebut;
-	std::string FPlageFin;
+	std::string m_begin;
+	std::string m_end;
+
+public:
+	CPasswordChunk();
+	CPasswordChunk(std::string p_passwordBegin, std::string p_passwordEnd);
+	~CPasswordChunk();
+
+	void Reset();
+	void SetPasswordRange(std::string p_passwordBegin, std::string p_passwordEnd);
+
+	std::string GetPasswordBegin() const;
+	std::string GetPasswordEnd() const;
+	int GetChunkSize() const;
 };
