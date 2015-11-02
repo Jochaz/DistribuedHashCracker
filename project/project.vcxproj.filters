@@ -170,6 +170,9 @@
     <ClInclude Include="Chunk.h">
       <Filter>Header Files\Project</Filter>
     </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>Header Files\Project</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -203,6 +206,9 @@
       <Filter>Source Files\Project</Filter>
     </ClCompile>
     <ClCompile Include="Chunk.cpp">
+      <Filter>Source Files\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="Global.cpp">
       <Filter>Source Files\Project</Filter>
     </ClCompile>
   </ItemGroup>
