@@ -4,6 +4,7 @@
 #include <fstream>
 #include <mutex>
 #include <string>
+
 using namespace std ;
 
 Log::Log(string UnMessage, string UneSeverite, string UnTitre) {
