@@ -1,5 +1,7 @@
 #include <string>
+
 enum severite{Serreur, Savertissement, Sinfo, Sdebug};
+
 class Log
 {
 public :
