@@ -1,9 +1,10 @@
 #include "Log.h"
 #include <iostream>
-#include "CDateTime.h"
+#include "Time.h"
 #include <fstream>
 #include <mutex>
 #include <string>
+#include "CFileText.h"
 using namespace std ;
 
 Log::Log(string UnMessage, string UneSeverite, string UnTitre) {
@@ -28,36 +29,56 @@ Log::Log(string UnMessage, string UneSeverite, string UnTitre) {
 		LaSeverite = Sdebug;
 		Debug();
 	}
-	else {
-		//Throw exception
-	}
+
+	//std::vector<std::string> cnt;
+	//string nameFile;
+
+	//time_t _time;
+	//struct tm timeInfo;
+	//char format[32];
+
+	//time(&_time);
+	//localtime_s(&timeInfo, &_time);
+
+	//strftime(format, 32, "%Y-%m-%d %H-%M", &timeInfo);
+	//nameFile = format + '.txt';
+
+
+	//cnt.push_back(UnMessage);
+
+	//CFileText fout(format, EFileOpenMode::write);
+	//fout.WriteAll(cnt, EFileEOL::UNIX);
+	//fout.Close();
+		mutex pause;
+	
+		CDateTime time;
+	
+		time.Now();
+	
+		ofstream ecriture(FTitre, ios::out | ios::app);
+	
+	
+		if (ecriture) {
+	
+			pause.lock();
+	
+			ecriture << "========================" << endl;
+			ecriture << "Date : " << time.m_wDay << "/" << time.m_wMonth << "/" << time.m_wYear << endl;
+			ecriture << "heure : " << time.m_wHour << ":" << time.m_wMinute << ":" << time.m_wSecond << endl;
+			ecriture << FMessage << endl;
+			ecriture << "========================" << endl;
+	
+			pause.unlock();
+		}
+	
+		ecriture.close() ;
 
 }
 void Log::EcritureLog(string LeMessage) {
+	//
 
-	mutex pause;
+	//}
 
-	CDateTime time;
-
-	time.Now();
-
-	ofstream ecriture(FTitre, ios::out | ios::app);
-
-
-	if (ecriture) {
-
-		pause.lock();
-
-		ecriture << "========================" << endl;
-		ecriture << "Date : " << time.m_wDay << "/" << time.m_wMonth << "/" << time.m_wYear << endl;
-		ecriture << "heure : " << time.m_wHour << ":" << time.m_wMinute << ":" << time.m_wSecond << endl;
-		ecriture << LeMessage << endl;
-		ecriture << "========================" << endl;
-
-		pause.unlock();
-	}
-
-	ecriture.close() ;
 }
 void Log::Erreur() {
 

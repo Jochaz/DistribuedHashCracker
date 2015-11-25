@@ -15,7 +15,7 @@ void TestFileText() {
 	try {
 		std::vector<std::string> cnt;
 
-		CFileText fin( "d:\\txt_lf.txt" );
+		CFileText fin( "statut.txt" );
 		fin.Open( EFileOpenMode::read );
 		cnt = fin.ReadAll();
 		std::cout << "----------" << std::endl;
@@ -25,7 +25,7 @@ void TestFileText() {
 		std::cout << "----------" << std::endl;
 		fin.Close();
 
-		CFileText fout( "d:\\txt2.txt", EFileOpenMode::write );
+		CFileText fout( "statut.txt", EFileOpenMode::write );
 		fout.WriteAll( cnt, EFileEOL::UNIX );
 		fin.Close();
 	}
@@ -83,7 +83,7 @@ void TestFileBinary() {
 
 void TestFiles() {
 	TestFileText();
-	TestFileBinary();
+	//TestFileBinary();
 	return;
 }
 

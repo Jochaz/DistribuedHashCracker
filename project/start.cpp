@@ -3,18 +3,29 @@
 #include "Global.h"
 
 //#include "DemoException.h"
-//#include "DemoHash.h"
+#include "DemoHash.h"
 //#include "DemoSocket.h"
 //#include "DemoThreads.h"
-//#include "DemoFiles.h"
+#include "DemoFiles.h"
 //#include "DemoDateTime.h"
 #include <stdio.h>
+#include <fstream>
 #include <stdlib.h>
-
+#include <sys/stat.h>
+//#include <unistd.h>
+#include "CFileText.h"
 #include "string"
+#include "CException.h"
 using namespace std;
 #include "DemoUtil.h"
 #include "CUtil.h"
+#include "Log.h"
+#include "CHashNone.h"
+#include "CHashCrc32.h"
+#include "CHashMd5.h"
+#include "CHashSha1.h"
+#include "CHashSha224.h"
+#include "CHashSha256.h"
 
 
 std::string PASSWORD;
@@ -46,6 +57,53 @@ std::string ALPHABET;
 //
 //	return;
 //}
+
+//Fonction retournant si un fichier existe
+inline bool file_exists(const std::string& name) {
+	ifstream f(name.c_str());
+	if (f.good()) {
+		f.close();
+		return true;
+	}
+	else {
+		f.close();
+		return false;
+	}
+}
+
+void SavePasswordInFile(string MDP){
+	try {
+		std::vector<std::string> cnt;
+		cnt.push_back(MDP);
+		CFileText fout( "statut.txt", EFileOpenMode::write );
+		fout.WriteAll( cnt, EFileEOL::UNIX );
+		fout.Close();
+
+	}
+	catch (CException &e) {
+		Log log(e.GetErrorMessage(), "Erreur", e.GetType());
+	}
+}
+
+string LoadPasswordInFile(){	
+	try {
+		ifstream fichier("statut.txt", ios::in);  // on ouvre en lecture
+
+		if (fichier)  // si l'ouverture a fonctionné
+		{
+			string contenu;  // déclaration d'une chaîne qui contiendra la ligne lue
+			getline(fichier, contenu);  // on met dans "contenu" la ligne
+
+			fichier.close();
+			return contenu;
+		}
+		else
+			cerr << "Impossible d'ouvrir le fichier !" << endl;
+		}
+	catch (CException &e) {			
+		Log log(e.GetErrorMessage(), "Erreur", e.GetType());
+	}
+}
 
 int nextAlphabet(char C, string Alphabet){
 	//VAR
@@ -106,31 +164,41 @@ std::string nextPassword(std::string Password, std::string Alphabet){
 }
 
 void bruteForce(){
+	//INITIALISATION
 	std::string CurrentPassword = "";
+
+	//ON REGARDE SI ON C'ETAIT PAS ARRETE AVANT, SI C'EST LE CAS ON RECUPERE LE MDP EN COURS
+	if (file_exists("statut.txt")){
+		CurrentPassword = LoadPasswordInFile();
+	}
 	while (PASSWORD != CurrentPassword && !CUtil::IsEscKeyPressed()){
 		std::cout << ".";
 		CurrentPassword = nextPassword(CurrentPassword, ALPHABET);
+		
 		CUtil::Sleep(0);
+	}
+
+	//On a pas trouver le MDP donc Escape a été pressé donc on log et on le sauvegarde
+	if (CurrentPassword != PASSWORD){
+		SavePasswordInFile(CurrentPassword);
+		Log log("La touche échap a été pressé ! STOP", "Information", "Echap pressé");
+	}
+	else //SINON ON EFFACE LE CONTENU DU FICHIER VU QU'ON A TROUVER LE MDP
+	{
+		SavePasswordInFile("");
 	}
 	std::cout << CurrentPassword;
 	return;
 }
 
-int main_(int n, const char*params[])  
-{
-	PASSWORD = "B1AF2";
-	ALPHABET = "ABCDEF12";
-	bruteForce();
-	return 0;
-
-}
 
 int main(int n, const char*params[]){
 
-
 	int i;
 	string param;
-
+	ALPHABET = "ABCDEF132456";
+	PASSWORD = "32CD";
+	bruteForce();
 	if((n-1)%2 != 0 || (n-1)/2 != 4)
 	{
 		std::cout << "EXCEPTION, le nb d'argument est incohérent ou incomplet" << std::endl;
@@ -174,4 +242,5 @@ int main(int n, const char*params[]){
 		}
 		return 0;
 	}
+	system("pause");
 }
