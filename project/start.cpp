@@ -1,13 +1,6 @@
 #include "stdafx.h"
 #include <iostream>
 #include "Global.h"
-
-//#include "DemoException.h"
-#include "DemoHash.h"
-//#include "DemoSocket.h"
-//#include "DemoThreads.h"
-#include "DemoFiles.h"
-//#include "DemoDateTime.h"
 #include <stdio.h>
 #include <fstream>
 #include <stdlib.h>
@@ -17,7 +10,6 @@
 #include "string"
 #include "CException.h"
 using namespace std;
-#include "DemoUtil.h"
 #include "CUtil.h"
 #include "Log.h"
 #include "CHashNone.h"
@@ -26,11 +18,7 @@ using namespace std;
 #include "CHashSha1.h"
 #include "CHashSha224.h"
 #include "CHashSha256.h"
-
-
-std::string PASSWORD;
-std::string ALPHABET;
-
+Global *global;
 //void demos( int argc, char *argv[] ) {
 //	//
 //	// Display parameters received from command line
@@ -99,12 +87,90 @@ string LoadPasswordInFile(){
 		}
 		else
 			cerr << "Impossible d'ouvrir le fichier !" << endl;
+		
 		}
+
+		
 	catch (CException &e) {			
 		Log log(e.GetErrorMessage(), "Erreur", e.GetType());
 	}
+	return "";
 }
 
+string convertToMD5(string MDP){
+	CHashMd5 md5;
+	string resultat;
+	md5.HashBuffer(reinterpret_cast<const unsigned char *>(MDP.c_str()), static_cast<int>(MDP.length()));
+	resultat = md5.GetHash();
+	for (size_t i = 0; i < resultat.size(); i++)
+	{
+		resultat[i] = tolower(resultat[i]);
+	}
+	return resultat;
+
+}
+string convertToCrc32(string MDP){
+	CHashCrc32 crc32;
+	string resultat;
+	crc32.HashBuffer(reinterpret_cast<const unsigned char *>(MDP.c_str()), static_cast<int>(MDP.length()));
+	resultat = crc32.GetHash();
+	for (size_t i = 0; i<resultat.size(); i++)
+	{
+		resultat[i] = tolower(resultat[i]);
+	}
+	return resultat;
+
+}
+
+string convertToNone(string MDP){
+	CHashNone none;
+	string resultat;
+	none.HashBuffer(reinterpret_cast<const unsigned char *>(MDP.c_str()), static_cast<int>(MDP.length()));
+	resultat = none.GetHash();
+	for (size_t i = 0; i<resultat.size(); i++)
+	{
+		resultat[i] = tolower(resultat[i]);
+	}
+	return resultat;
+
+}
+
+string convertToSha1(string MDP){
+	CHashSha1 Sha1;
+	string resultat;
+	Sha1.HashBuffer(reinterpret_cast<const unsigned char *>(MDP.c_str()), static_cast<int>(MDP.length()));
+	resultat = Sha1.GetHash();
+	for (size_t i = 0; i<resultat.size(); i++)
+	{
+		resultat[i] = tolower(resultat[i]);
+	}
+	return resultat;
+
+}
+string convertToSha224(string MDP){
+	CHashSha224 Sha224;
+	string resultat;
+	Sha224.HashBuffer(reinterpret_cast<const unsigned char *>(MDP.c_str()), static_cast<int>(MDP.length()));
+	resultat = Sha224.GetHash();
+	for (size_t i = 0; i<resultat.size(); i++)
+	{
+		resultat[i] = tolower(resultat[i]);
+	}
+	return resultat;
+
+}
+string convertToSha256(string MDP){
+	CHashSha256 Sha256;
+	string resultat;
+	Sha256.HashBuffer(reinterpret_cast<const unsigned char *>(MDP.c_str()), static_cast<int>(MDP.length()));
+	resultat = Sha256.GetHash();
+	for (size_t i = 0; i<resultat.size(); i++)
+	{
+		resultat[i] = tolower(resultat[i]);
+	}
+	return resultat;
+
+}
 int nextAlphabet(char C, string Alphabet){
 	//VAR
 	int Result;
@@ -166,20 +232,35 @@ std::string nextPassword(std::string Password, std::string Alphabet){
 void bruteForce(){
 	//INITIALISATION
 	std::string CurrentPassword = "";
-
+	std::string PasswordHashed = "";
 	//ON REGARDE SI ON C'ETAIT PAS ARRETE AVANT, SI C'EST LE CAS ON RECUPERE LE MDP EN COURS
 	if (file_exists("statut.txt")){
 		CurrentPassword = LoadPasswordInFile();
 	}
-	while (PASSWORD != CurrentPassword && !CUtil::IsEscKeyPressed()){
+
+
+	while (global->hash != PasswordHashed && !CUtil::IsEscKeyPressed()){
 		std::cout << ".";
-		CurrentPassword = nextPassword(CurrentPassword, ALPHABET);
-		
+		CurrentPassword = nextPassword(CurrentPassword, global->alphabet);
+		if (global->algo == "none")
+			PasswordHashed = CurrentPassword;
+		if (global->algo == "crc32")
+			PasswordHashed = convertToCrc32(CurrentPassword);
+		if (global->algo == "md5")
+			PasswordHashed = convertToMD5(CurrentPassword);
+		if (global->algo == "sha1")
+			PasswordHashed = convertToSha1(CurrentPassword);
+		if (global->algo == "sha224")
+			PasswordHashed = convertToSha224(CurrentPassword);
+		if (global->algo == "sha256")
+			PasswordHashed = convertToSha256(CurrentPassword);
 		CUtil::Sleep(0);
+		//std::cout << CurrentPassword + "   ";
 	}
 
+
 	//On a pas trouver le MDP donc Escape a été pressé donc on log et on le sauvegarde
-	if (CurrentPassword != PASSWORD){
+	if (PasswordHashed != global->hash){
 		SavePasswordInFile(CurrentPassword);
 		Log log("La touche échap a été pressé ! STOP", "Information", "Echap pressé");
 	}
@@ -188,6 +269,7 @@ void bruteForce(){
 		SavePasswordInFile("");
 	}
 	std::cout << CurrentPassword;
+	system("pause");
 	return;
 }
 
@@ -196,17 +278,19 @@ int main(int n, const char*params[]){
 
 	int i;
 	string param;
-	ALPHABET = "ABCDEF132456";
-	PASSWORD = "32CD";
-	bruteForce();
 	if((n-1)%2 != 0 || (n-1)/2 != 4)
+	//if (1==2)
 	{
 		std::cout << "EXCEPTION, le nb d'argument est incohérent ou incomplet" << std::endl;
 
 	}else{
-		Global *global;
+		
 		// t = CTest::getInstance();
-		global = Global::getInstance();
+		//global = Global::getInstance();
+		//global->hash = "0e1194376a0b6d5300ab74c31d0bb6df";
+		//global->algo = "md5";
+		//global->alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/*-+$%^!:;.,?@&~#()[]{}|_";
+		//global->chunkSize = 2;
 		//OK, le nb d'argument est cohérent
 		for (i=1; i<n; i=i+2) // i+2 car i = la clé & i+1 la valeur, donc on boucle sur les clés, ce qui justifie le fait d'avoir un pas de 2 et non de 1
 		{
@@ -214,7 +298,7 @@ int main(int n, const char*params[]){
 		
 			if(param == "-hash")
 			{
-				global->hash = params[i+1];
+				global->hash = params[i+1];				
 			}
 		
 			if(param == "-algo")
@@ -235,12 +319,13 @@ int main(int n, const char*params[]){
 		if (global->hash != "" && global->algo != ""  && global->alphabet != ""  && global->chunkSize != 0)
 		{
 				std::cout << "Ok, les parametres ont tous ete saisis" << std::endl;
+				bruteForce();
 		}else
 		{
 				std::cout << "EXCEPTION, certains parametres sont non saisis" << std::endl;
 
 		}
 		return 0;
+
 	}
-	system("pause");
 }
