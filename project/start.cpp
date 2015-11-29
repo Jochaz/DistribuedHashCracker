@@ -255,18 +255,18 @@ void bruteForce(){
 		if (global->algo == "sha256")
 			PasswordHashed = convertToSha256(CurrentPassword);
 		CUtil::Sleep(0);
-		//std::cout << CurrentPassword + "   ";
 	}
 
 
 	//On a pas trouver le MDP donc Escape a été pressé donc on log et on le sauvegarde
 	if (PasswordHashed != global->hash){
 		SavePasswordInFile(CurrentPassword);
-		Log log("La touche échap a été pressé ! STOP", "Information", "Echap pressé");
+		Log log("La touche échap a été pressé ! STOP", "Info", "Echap pressé");
 	}
 	else //SINON ON EFFACE LE CONTENU DU FICHIER VU QU'ON A TROUVER LE MDP
 	{
 		SavePasswordInFile("");
+		Log log("Le mot de passe a été trouvé : " + CurrentPassword, "Info", "MDP Trouvé !");
 	}
 	std::cout << CurrentPassword;
 	system("pause");
@@ -278,19 +278,19 @@ int main(int n, const char*params[]){
 
 	int i;
 	string param;
-	if((n-1)%2 != 0 || (n-1)/2 != 4)
-	//if (1==2)
+	//if((n-1)%2 != 0 || (n-1)/2 != 4)
+	if (1==2)
 	{
 		std::cout << "EXCEPTION, le nb d'argument est incohérent ou incomplet" << std::endl;
 
 	}else{
 		
 		// t = CTest::getInstance();
-		//global = Global::getInstance();
-		//global->hash = "0e1194376a0b6d5300ab74c31d0bb6df";
-		//global->algo = "md5";
-		//global->alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/*-+$%^!:;.,?@&~#()[]{}|_";
-		//global->chunkSize = 2;
+		global = Global::getInstance();
+		global->hash = "0e1194376a0b6d5300ab74c31d0bb6df";
+		global->algo = "md5";
+		global->alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/*-+$%^!:;.,?@&~#()[]{}|_";
+		global->chunkSize = 2;
 		//OK, le nb d'argument est cohérent
 		for (i=1; i<n; i=i+2) // i+2 car i = la clé & i+1 la valeur, donc on boucle sur les clés, ce qui justifie le fait d'avoir un pas de 2 et non de 1
 		{
@@ -328,4 +328,5 @@ int main(int n, const char*params[]){
 		return 0;
 
 	}
+	system("pause");
 }

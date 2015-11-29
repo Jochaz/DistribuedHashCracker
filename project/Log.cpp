@@ -1,16 +1,20 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include "Log.h"
 #include <iostream>
 #include "Time.h"
 #include <fstream>
 #include <mutex>
 #include <string>
+#include "CException.h"
 #include "CFileText.h"
+#include <ctime>
 using namespace std ;
 
 Log::Log(string UnMessage, string UneSeverite, string UnTitre) {
 	severite LaSeverite;
 
-	FTitre = UnTitre;
 	FMessage = UnMessage;
 
 	if (UneSeverite == "Erreur") {
@@ -49,40 +53,62 @@ Log::Log(string UnMessage, string UneSeverite, string UnTitre) {
 	//CFileText fout(format, EFileOpenMode::write);
 	//fout.WriteAll(cnt, EFileEOL::UNIX);
 	//fout.Close();
-		mutex pause;
 	
-		CDateTime time;
-	
-		time.Now();
-	
-		ofstream ecriture(FTitre, ios::out | ios::app);
-	
-	
-		if (ecriture) {
-	
-			pause.lock();
-	
-			ecriture << "========================" << endl;
-			ecriture << "Date : " << time.m_wDay << "/" << time.m_wMonth << "/" << time.m_wYear << endl;
-			ecriture << "heure : " << time.m_wHour << ":" << time.m_wMinute << ":" << time.m_wSecond << endl;
-			ecriture << FMessage << endl;
-			ecriture << "========================" << endl;
-	
-			pause.unlock();
-		}
-	
-		ecriture.close() ;
 
 }
 void Log::EcritureLog(string LeMessage) {
 	//
+	//mutex pause;
+	//
+	//	CDateTime time;
+	//
+	//	time.Now();
+	//
+	//	ofstream ecriture(FTitre, ios::out | ios::app);
+	//
+	//
+	//	if (ecriture) {
+	//
+	//		pause.lock();
+	//
+	//		ecriture << "========================" << endl;
+	//		ecriture << "Date : " << time.m_wDay << "/" << time.m_wMonth << "/" << time.m_wYear << endl;
+	//		ecriture << "heure : " << time.m_wHour << ":" << time.m_wMinute << ":" << time.m_wSecond << endl;
+	//		ecriture << FMessage << endl;
+	//		ecriture << "========================" << endl;
+	//
+	//		pause.unlock();
+	//	}
+	//
+	//	ecriture.close() ;
+	////}
+	try {
+		time_t rawtime;
+		struct tm * timeinfo;
+		char buffer[80];
+		
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
 
-	//}
+		strftime(buffer, 80, "%d%m%Y %I%M%S", timeinfo);
+		std::string str(buffer);
+
+		std::vector<std::string> cnt;
+		cnt.push_back(LeMessage);
+		CFileText fout(str + ".txt", EFileOpenMode::write);
+		fout.WriteAll(cnt, EFileEOL::UNIX);
+		fout.Close();
+
+	}
+	catch (CException &e) {
+		Log log(e.GetErrorMessage(), "Erreur", e.GetType());
+	}
 
 }
 void Log::Erreur() {
 
 	string error("!! ERROR !! ");
+	error += FTitre;
 	error += FMessage;
 	EcritureLog(error);
 
@@ -90,6 +116,7 @@ void Log::Erreur() {
 void Log::Avertissement() {
 
 	string warning("! WARNING ! ");
+	warning += FTitre;
 	warning += FMessage;
 	EcritureLog(warning);
 
@@ -98,6 +125,7 @@ void Log::Avertissement() {
 void Log::Info() {
 
 	string info("* INFO * ");
+	info += FTitre;
 	info += FMessage;
 	EcritureLog(info);
 
@@ -105,6 +133,7 @@ void Log::Info() {
 void Log::Debug() {
 
 	string debug(" o DEBUG o ");
+	debug += FTitre;
 	debug += FMessage;
 	EcritureLog(debug);
 
