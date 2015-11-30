@@ -18,6 +18,8 @@ using namespace std;
 #include "CHashSha1.h"
 #include "CHashSha224.h"
 #include "CHashSha256.h"
+#include <pthread.h>
+#include <thread>
 Global *global;
 //void demos( int argc, char *argv[] ) {
 //	//
@@ -127,10 +129,6 @@ string convertToNone(string MDP){
 	string resultat;
 	none.HashBuffer(reinterpret_cast<const unsigned char *>(MDP.c_str()), static_cast<int>(MDP.length()));
 	resultat = none.GetHash();
-	for (size_t i = 0; i<resultat.size(); i++)
-	{
-		resultat[i] = tolower(resultat[i]);
-	}
 	return resultat;
 
 }
@@ -243,7 +241,7 @@ void bruteForce(){
 		std::cout << ".";
 		CurrentPassword = nextPassword(CurrentPassword, global->alphabet);
 		if (global->algo == "none")
-			PasswordHashed = CurrentPassword;
+			PasswordHashed = convertToNone(CurrentPassword);
 		if (global->algo == "crc32")
 			PasswordHashed = convertToCrc32(CurrentPassword);
 		if (global->algo == "md5")
@@ -273,44 +271,72 @@ void bruteForce(){
 	return;
 }
 
+void MiseEnPlaceDesThreads(){
+	for (int i = 0; i < CUtil::GetCpuCoreCount(); i++)
+	{
+		//pthread_h t;
+	}
+}
 
+bool isThreadAlive(pthread_t tid) {
+	return pthread_kill(tid, 0) != ESRCH;
+}
+void * maFonction(void *p_arg){
+	int number = reinterpret_cast<int>(p_arg);
+
+	//for (int i = 0; i < 5000; i++) {
+	//	std::cout << number;
+	//}
+	return nullptr;
+}
+
+void initialisationThread(){
+	int nbThread = CUtil::GetCpuCoreCount() - 1; // A remplir avec ton nombre de threads
+
+	pthread_t* threads = (pthread_t*)malloc(nbThread*sizeof(pthread_t));
+
+	for (int i = 0; i < nbThread; ++i)
+		pthread_create(&threads[i], NULL, maFonction, (void *)i);
+	for (int i = 0; i < nbThread; ++i)
+		pthread_join(threads[i], nullptr);
+}
 int main(int n, const char*params[]){
-
 	int i;
 	string param;
 	//if((n-1)%2 != 0 || (n-1)/2 != 4)
-	if (1==2)
+	if (1 == 2)
 	{
 		std::cout << "EXCEPTION, le nb d'argument est incohérent ou incomplet" << std::endl;
 
-	}else{
-		
+	}
+	else{
+
 		// t = CTest::getInstance();
 		global = Global::getInstance();
-		global->hash = "0e1194376a0b6d5300ab74c31d0bb6df";
+		global->hash = "34cafdb9a33d05a68ac5cecdb76b0085";
 		global->algo = "md5";
 		global->alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/*-+$%^!:;.,?@&~#()[]{}|_";
 		global->chunkSize = 2;
 		//OK, le nb d'argument est cohérent
-		for (i=1; i<n; i=i+2) // i+2 car i = la clé & i+1 la valeur, donc on boucle sur les clés, ce qui justifie le fait d'avoir un pas de 2 et non de 1
+		for (i = 1; i<n; i = i + 2) // i+2 car i = la clé & i+1 la valeur, donc on boucle sur les clés, ce qui justifie le fait d'avoir un pas de 2 et non de 1
 		{
 			param = params[i];
-		
-			if(param == "-hash")
+
+			if (param == "-hash")
 			{
-				global->hash = params[i+1];				
+				global->hash = params[i + 1];
 			}
-		
-			if(param == "-algo")
+
+			if (param == "-algo")
 			{
 				global->algo = params[i + 1];
 			}
-		
-			if(param == "-alphabet")
+
+			if (param == "-alphabet")
 			{
 				global->alphabet = params[i + 1];
-			}		
-			if(param == "-chunksize")
+			}
+			if (param == "-chunksize")
 			{
 				global->chunkSize = (int)params[i + 1];
 			}
@@ -318,15 +344,19 @@ int main(int n, const char*params[]){
 
 		if (global->hash != "" && global->algo != ""  && global->alphabet != ""  && global->chunkSize != 0)
 		{
-				std::cout << "Ok, les parametres ont tous ete saisis" << std::endl;
-				bruteForce();
-		}else
+			std::cout << "Ok, les parametres ont tous ete saisis" << std::endl;
+			initialisationThread();
+		//	bruteForce();
+		}
+		else
 		{
-				std::cout << "EXCEPTION, certains parametres sont non saisis" << std::endl;
+			Log log("certains parametres sont non saisis", "Erreur", "Paramètres manquants");
+			std::cout << "Certains parametres sont non saisis" << std::endl;
 
 		}
 		return 0;
 
 	}
+
 	system("pause");
 }
