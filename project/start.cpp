@@ -25,6 +25,7 @@ Global *global;
 bool Fin = false;
 int size = 24;
 vector<CPasswordChunk> arrayChunk(size);
+int CurrentChunk = 0;
 
 string chunkSuivantDebut(string Debut){
 	string leDebut = "";
@@ -55,11 +56,6 @@ void initialisationChunk(){
 		chunk.SetPasswordRange(Debut, Fin);
 		arrayChunk[i] = chunk;
 	}	
-	for (int i = 0; i < size - 1; i++)
-		cout << arrayChunk[i].GetPasswordBegin() << endl;
-	for (int i = 0; i < size - 1; i++)
-		cout << arrayChunk[i].GetPasswordEnd() << endl;
-	system("pause");
 }
 //Fonction retournant si un fichier existe
 inline bool file_exists(const std::string& name) {
@@ -239,8 +235,11 @@ std::string nextPassword(std::string Password, std::string Alphabet){
 	}
 	return Result;
 }
+bool isThreadAlive(pthread_t tid) {
+	return pthread_kill(tid, 0) != ESRCH;
+}
 
-void bruteForce(){
+void bruteForce(string BeginChunk, string EndChunk, int ith){
 	//INITIALISATION
 	std::string CurrentPassword = "";
 	std::string PasswordHashed = "";
@@ -250,7 +249,7 @@ void bruteForce(){
 	}
 
 
-	while (global->hash != PasswordHashed && !CUtil::IsEscKeyPressed()){
+	while (global->hash != PasswordHashed && !CUtil::IsEscKeyPressed() && CurrentPassword != EndChunk && !Fin){
 		std::cout << ".";
 		CurrentPassword = nextPassword(CurrentPassword, global->alphabet);
 		if (global->algo == "none")
@@ -270,50 +269,38 @@ void bruteForce(){
 
 
 	//On a pas trouver le MDP donc Escape a été pressé donc on log et on le sauvegarde
-	if (PasswordHashed != global->hash){
+	if (PasswordHashed != global->hash && CurrentPassword != EndChunk && !Fin){
 		SavePasswordInFile(CurrentPassword);
 		Log log("La touche échap a été pressé ! STOP", "Info", "Echap pressé");
 	}
-	else //SINON ON EFFACE LE CONTENU DU FICHIER VU QU'ON A TROUVER LE MDP
+	else if (PasswordHashed == global->hash) //SINON ON EFFACE LE CONTENU DU FICHIER VU QU'ON A TROUVER LE MDP
 	{
 		SavePasswordInFile("");
 		Log log("Le mot de passe a été trouvé : " + CurrentPassword, "Info", "MDP Trouvé !");
+		Fin = true;
 	}
-	std::cout << CurrentPassword;
-	system("pause");
 	return;
 }
 
-void MiseEnPlaceDesThreads(){
-	for (int i = 0; i < CUtil::GetCpuCoreCount(); i++)
-	{
-		//pthread_h t;
-	}
-}
 
-bool isThreadAlive(pthread_t tid) {
-	return pthread_kill(tid, 0) != ESRCH;
-}
+
 void * maFonction(void *p_arg){
 	int number = reinterpret_cast<int>(p_arg);
 	while (!Fin){
-
+		bruteForce(arrayChunk[CurrentChunk].GetPasswordBegin(), arrayChunk[CurrentChunk].GetPasswordEnd(), number);
+		CurrentChunk++;
 	}
-	//for (int i = 0; i < 5000; i++) {
-	//	std::cout << number;
-	//}
 	return nullptr;
 }
 
 void initialisationThread(){
-	int nbThread = CUtil::GetCpuCoreCount() - 1; // A remplir avec ton nombre de threads
-
+	int nbThread = CUtil::GetCpuCoreCount(); // A remplir avec ton nombre de threads
+	nbThread = 1;
 	pthread_t* threads = (pthread_t*)malloc(nbThread*sizeof(pthread_t));
-
 	for (int i = 0; i < nbThread; ++i)
 		pthread_create(&threads[i], NULL, maFonction, (void *)i);
 	for (int i = 0; i < nbThread; ++i)
-		pthread_join(threads[i], nullptr);
+			pthread_join(threads[i], nullptr);
 }
 int main(int n, const char*params[]){
 	int i;
@@ -326,7 +313,6 @@ int main(int n, const char*params[]){
 	}
 	else{
 
-		// t = CTest::getInstance();
 		global = Global::getInstance();
 		global->hash = "34cafdb9a33d05a68ac5cecdb76b0085";
 		global->algo = "md5";
@@ -361,7 +347,7 @@ int main(int n, const char*params[]){
 		{
 			std::cout << "Ok, les parametres ont tous ete saisis" << std::endl;
 			initialisationChunk();
-			//initialisationThread();
+			initialisationThread();
 		//	bruteForce();
 		}
 		else
