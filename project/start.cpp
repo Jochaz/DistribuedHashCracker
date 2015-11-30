@@ -265,6 +265,7 @@ void bruteForce(string BeginChunk, string EndChunk, int ith){
 		if (global->algo == "sha256")
 			PasswordHashed = convertToSha256(CurrentPassword);
 		CUtil::Sleep(0);
+
 	}
 
 
@@ -272,12 +273,15 @@ void bruteForce(string BeginChunk, string EndChunk, int ith){
 	if (PasswordHashed != global->hash && CurrentPassword != EndChunk && !Fin){
 		SavePasswordInFile(CurrentPassword);
 		Log log("La touche échap a été pressé ! STOP", "Info", "Echap pressé");
+		Fin = true;
 	}
 	else if (PasswordHashed == global->hash) //SINON ON EFFACE LE CONTENU DU FICHIER VU QU'ON A TROUVER LE MDP
 	{
 		SavePasswordInFile("");
 		Log log("Le mot de passe a été trouvé : " + CurrentPassword, "Info", "MDP Trouvé !");
 		Fin = true;
+		cout << CurrentPassword;
+		system("pause");
 	}
 	return;
 }
@@ -295,7 +299,7 @@ void * maFonction(void *p_arg){
 
 void initialisationThread(){
 	int nbThread = CUtil::GetCpuCoreCount(); // A remplir avec ton nombre de threads
-	nbThread = 1;
+	//nbThread = 1;
 	pthread_t* threads = (pthread_t*)malloc(nbThread*sizeof(pthread_t));
 	for (int i = 0; i < nbThread; ++i)
 		pthread_create(&threads[i], NULL, maFonction, (void *)i);
@@ -314,7 +318,7 @@ int main(int n, const char*params[]){
 	else{
 
 		global = Global::getInstance();
-		global->hash = "34cafdb9a33d05a68ac5cecdb76b0085";
+		global->hash = "0098f9f623139fe20042eafbfe9de3be";
 		global->algo = "md5";
 		global->alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/*-+$%^!:;.,?@&~#()[]{}|_";
 		global->chunkSize = 2;
