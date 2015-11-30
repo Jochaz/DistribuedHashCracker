@@ -20,34 +20,47 @@ using namespace std;
 #include "CHashSha256.h"
 #include <pthread.h>
 #include <thread>
+#include "Chunk.h"
 Global *global;
-//void demos( int argc, char *argv[] ) {
-//	//
-//	// Display parameters received from command line
-//	std::cout << std::endl;
-//	std::cout << "** Parameters dump:" << std::endl;
-//	for (int i = 0; i < argc; i++) {
-//		std::cout << "argv[" << i << "] = \"" << argv[ i ] << "\"" << std::endl;
-//	}
-//
-//	//
-//	// Test libraries
-//	std::cout << std::endl;
-//	//TestThreads();
-//	TestException();
-//	
-//	//TestThreads();
-//	//TestException();
-//	//TestHashes();
-//	//TestSocket();
-//	//TestFiles();
-//	//TestDateTime();
-//	//TestUtil();
-//	TestUtil();
-//
-//	return;
-//}
+bool Fin = false;
+int size = 24;
+vector<CPasswordChunk> arrayChunk(size);
 
+string chunkSuivantDebut(string Debut){
+	string leDebut = "";
+	for (int i = 0; i < global->chunkSize; i++)
+		leDebut = leDebut + global->alphabet[0];
+	
+	return leDebut;
+}
+string chunkSuivantFin(string Fin){
+	string laFin = "";
+	for (int i = 0; i < global->chunkSize; i++)
+		laFin = laFin + global->alphabet[global->alphabet.size() -1];
+	return laFin;
+}
+void initialisationChunk(){
+	string Debut = "";
+	string Fin = "";
+	Debut = global->alphabet[0];
+	Fin = chunkSuivantFin(Fin);
+	for (int i = 0; i < size - 1; i++)
+	{
+		if (i != 0)
+		{
+			Debut = Debut + chunkSuivantDebut(Debut);
+			Fin = Fin + chunkSuivantFin(Fin);
+		}
+		CPasswordChunk chunk;
+		chunk.SetPasswordRange(Debut, Fin);
+		arrayChunk[i] = chunk;
+	}	
+	for (int i = 0; i < size - 1; i++)
+		cout << arrayChunk[i].GetPasswordBegin() << endl;
+	for (int i = 0; i < size - 1; i++)
+		cout << arrayChunk[i].GetPasswordEnd() << endl;
+	system("pause");
+}
 //Fonction retournant si un fichier existe
 inline bool file_exists(const std::string& name) {
 	ifstream f(name.c_str());
@@ -283,7 +296,9 @@ bool isThreadAlive(pthread_t tid) {
 }
 void * maFonction(void *p_arg){
 	int number = reinterpret_cast<int>(p_arg);
+	while (!Fin){
 
+	}
 	//for (int i = 0; i < 5000; i++) {
 	//	std::cout << number;
 	//}
@@ -345,7 +360,8 @@ int main(int n, const char*params[]){
 		if (global->hash != "" && global->algo != ""  && global->alphabet != ""  && global->chunkSize != 0)
 		{
 			std::cout << "Ok, les parametres ont tous ete saisis" << std::endl;
-			initialisationThread();
+			initialisationChunk();
+			//initialisationThread();
 		//	bruteForce();
 		}
 		else
