@@ -5,7 +5,6 @@
 #include <fstream>
 #include <stdlib.h>
 #include <sys/stat.h>
-//#include <unistd.h>
 #include "CFileText.h"
 #include "string"
 #include "CException.h"
@@ -21,42 +20,15 @@ using namespace std;
 #include <pthread.h>
 #include <thread>
 #include "Chunk.h"
+
 Global *global;
 bool Fin = false;
 int size = 24;
 vector<CPasswordChunk> arrayChunk(size);
-int CurrentChunk = 0;
+int CurrentChunk = -1;
+string debut;
+string fin;
 
-string chunkSuivantDebut(string Debut){
-	string leDebut = "";
-	for (int i = 0; i < global->chunkSize; i++)
-		leDebut = leDebut + global->alphabet[0];
-	
-	return leDebut;
-}
-string chunkSuivantFin(string Fin){
-	string laFin = "";
-	for (int i = 0; i < global->chunkSize; i++)
-		laFin = laFin + global->alphabet[global->alphabet.size() -1];
-	return laFin;
-}
-void initialisationChunk(){
-	string Debut = "";
-	string Fin = "";
-	Debut = global->alphabet[0];
-	Fin = chunkSuivantFin(Fin);
-	for (int i = 0; i < size - 1; i++)
-	{
-		if (i != 0)
-		{
-			Debut = Debut + chunkSuivantDebut(Debut);
-			Fin = Fin + chunkSuivantFin(Fin);
-		}
-		CPasswordChunk chunk;
-		chunk.SetPasswordRange(Debut, Fin);
-		arrayChunk[i] = chunk;
-	}	
-}
 //Fonction retournant si un fichier existe
 inline bool file_exists(const std::string& name) {
 	ifstream f(name.c_str());
@@ -69,6 +41,82 @@ inline bool file_exists(const std::string& name) {
 		return false;
 	}
 }
+
+string LoadPasswordInFile(){
+	try {
+		ifstream fichier("statut.txt", ios::in);  // on ouvre en lecture
+
+		if (fichier)  // si l'ouverture a fonctionné
+		{
+			string contenu;  // déclaration d'une chaîne qui contiendra la ligne lue
+			getline(fichier, contenu);  // on met dans "contenu" la ligne
+
+			fichier.close();
+			return contenu;
+		}
+		else
+			cerr << "Impossible d'ouvrir le fichier !" << endl;
+
+	}
+
+
+	catch (CException &e) {
+		Log log(e.GetErrorMessage(), "Erreur", e.GetType());
+	}
+	return "";
+}
+
+string chunkSuivantDebut(string Debut){
+	string leDebut = "";
+	for (int i = 0; i < global->chunkSize; i++)
+		leDebut = leDebut + global->alphabet[0];
+	
+	return leDebut;
+}
+
+
+string chunkSuivantFin(string Fin){
+	string laFin = "";
+	for (int i = 0; i < global->chunkSize; i++)
+		laFin = laFin + global->alphabet[global->alphabet.size() -1];
+	return laFin;
+}
+void initialisationChunk(){
+	string Debut = "";
+	string fin = "";
+	if (file_exists("statut.txt")){
+		Debut = LoadPasswordInFile();
+	}
+
+	if (Debut == ""){
+		Debut = global->alphabet[0];
+		fin = fin + chunkSuivantFin(fin);
+		CPasswordChunk chunk;
+		chunk.SetPasswordRange(Debut, fin);
+		arrayChunk[0] = chunk;
+	}
+	else {
+		for (int i = 0; i < Debut.size(); i++)
+			fin = fin + global->alphabet[global->alphabet.size() - 1];
+		fin = fin + chunkSuivantFin(fin);
+		CPasswordChunk chunk;
+		chunk.SetPasswordRange(Debut, fin);
+		arrayChunk[0] = chunk;
+		Debut = "";
+		for (int i = 0; i < chunk.GetPasswordBegin().size(); i++)
+			Debut = Debut + global->alphabet[0];
+	}
+
+	for (int i = 1; i < size - 1; i++)
+	{
+		Debut = Debut + chunkSuivantDebut(Debut);
+		fin = fin + chunkSuivantFin(fin);
+		CPasswordChunk chunk;
+		chunk.SetPasswordRange(Debut, fin);
+		arrayChunk[i] = chunk;
+	}	
+}
+
 
 void SavePasswordInFile(string MDP){
 	try {
@@ -84,29 +132,7 @@ void SavePasswordInFile(string MDP){
 	}
 }
 
-string LoadPasswordInFile(){	
-	try {
-		ifstream fichier("statut.txt", ios::in);  // on ouvre en lecture
 
-		if (fichier)  // si l'ouverture a fonctionné
-		{
-			string contenu;  // déclaration d'une chaîne qui contiendra la ligne lue
-			getline(fichier, contenu);  // on met dans "contenu" la ligne
-
-			fichier.close();
-			return contenu;
-		}
-		else
-			cerr << "Impossible d'ouvrir le fichier !" << endl;
-		
-		}
-
-		
-	catch (CException &e) {			
-		Log log(e.GetErrorMessage(), "Erreur", e.GetType());
-	}
-	return "";
-}
 
 string convertToMD5(string MDP){
 	CHashMd5 md5;
@@ -241,15 +267,12 @@ bool isThreadAlive(pthread_t tid) {
 
 void bruteForce(string BeginChunk, string EndChunk, int ith){
 	//INITIALISATION
-	std::string CurrentPassword = "";
+	std::string CurrentPassword = BeginChunk;
 	std::string PasswordHashed = "";
-	//ON REGARDE SI ON C'ETAIT PAS ARRETE AVANT, SI C'EST LE CAS ON RECUPERE LE MDP EN COURS
-	if (file_exists("statut.txt")){
-		CurrentPassword = LoadPasswordInFile();
-	}
-
 
 	while (global->hash != PasswordHashed && !CUtil::IsEscKeyPressed() && CurrentPassword != EndChunk && !Fin){
+		
+		
 		std::cout << ".";
 		CurrentPassword = nextPassword(CurrentPassword, global->alphabet);
 		if (global->algo == "none")
@@ -280,7 +303,7 @@ void bruteForce(string BeginChunk, string EndChunk, int ith){
 		SavePasswordInFile("");
 		Log log("Le mot de passe a été trouvé : " + CurrentPassword, "Info", "MDP Trouvé !");
 		Fin = true;
-		cout << CurrentPassword;
+		cout << endl << CurrentPassword <<endl;
 		system("pause");
 	}
 	return;
@@ -288,9 +311,10 @@ void bruteForce(string BeginChunk, string EndChunk, int ith){
 
 
 
-void * maFonction(void *p_arg){
+void * LancementBruteForce(void *p_arg){
 	int number = reinterpret_cast<int>(p_arg);
-	while (!Fin){
+	CurrentChunk++;
+	while (!Fin && CurrentChunk < arrayChunk.size()){
 		bruteForce(arrayChunk[CurrentChunk].GetPasswordBegin(), arrayChunk[CurrentChunk].GetPasswordEnd(), number);
 		CurrentChunk++;
 	}
@@ -299,29 +323,22 @@ void * maFonction(void *p_arg){
 
 void initialisationThread(){
 	int nbThread = CUtil::GetCpuCoreCount(); // A remplir avec ton nombre de threads
-	//nbThread = 1;
 	pthread_t* threads = (pthread_t*)malloc(nbThread*sizeof(pthread_t));
 	for (int i = 0; i < nbThread; ++i)
-		pthread_create(&threads[i], NULL, maFonction, (void *)i);
+		pthread_create(&threads[i], NULL, LancementBruteForce, (void *)i);
 	for (int i = 0; i < nbThread; ++i)
 			pthread_join(threads[i], nullptr);
 }
 int main(int n, const char*params[]){
 	int i;
 	string param;
-	//if((n-1)%2 != 0 || (n-1)/2 != 4)
-	if (1 == 2)
+	if((n-1)%2 != 0 || (n-1)/2 != 4)
 	{
 		std::cout << "EXCEPTION, le nb d'argument est incohérent ou incomplet" << std::endl;
 
 	}
 	else{
-
 		global = Global::getInstance();
-		global->hash = "0098f9f623139fe20042eafbfe9de3be";
-		global->algo = "md5";
-		global->alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/*-+$%^!:;.,?@&~#()[]{}|_";
-		global->chunkSize = 2;
 		//OK, le nb d'argument est cohérent
 		for (i = 1; i<n; i = i + 2) // i+2 car i = la clé & i+1 la valeur, donc on boucle sur les clés, ce qui justifie le fait d'avoir un pas de 2 et non de 1
 		{
@@ -342,8 +359,8 @@ int main(int n, const char*params[]){
 				global->alphabet = params[i + 1];
 			}
 			if (param == "-chunksize")
-			{
-				global->chunkSize = (int)params[i + 1];
+			{				
+				global->chunkSize = atoi(params[i + 1]);
 			}
 		}
 
@@ -352,7 +369,6 @@ int main(int n, const char*params[]){
 			std::cout << "Ok, les parametres ont tous ete saisis" << std::endl;
 			initialisationChunk();
 			initialisationThread();
-		//	bruteForce();
 		}
 		else
 		{
@@ -361,8 +377,7 @@ int main(int n, const char*params[]){
 
 		}
 		return 0;
-
 	}
+		system("pause");
 
-	system("pause");
 }
